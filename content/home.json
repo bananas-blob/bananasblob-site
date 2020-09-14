@@ -1,3 +1,6 @@
 {
-  "title": "My super site!"
+  "title": "My super site!",
+  "configuration": {
+    "titleSeparator": " | "
+  }
 }
