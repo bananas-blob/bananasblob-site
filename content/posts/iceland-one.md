@@ -1,6 +1,6 @@
 ---
 title: A trip to Iceland
-author: Watson & Crick
+author: Lucas
 date: '2019-07-10T16:04:44.000Z'
 hero_image: ../static/images/ice.jpg
 description: Essa é a descrição do post
