@@ -61,6 +61,8 @@ export default function BlogPost({ file, pageTitle }) {
   const [data, form] = useGithubMarkdownForm(file, formOptions);
   usePlugin(form);
 
+  console.log({ data });
+
   return (
     <Layout title={"pageTitle"} description={data.frontmatter.description}>
       <article className="post">
