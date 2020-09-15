@@ -1,6 +1,6 @@
 ---
 title: A trip to Iceland
-author: 'Watson & Crick '
+author: Lucas
 date: '2019-07-10T16:04:44.000Z'
 hero_image: ../static/images/ice.jpg
 image: 'https://drive.google.com/file/d/15z9LClKm8sbJMzBhjXPae0Z3s29b7SF4/view?usp=sharing'
