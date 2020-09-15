@@ -1,5 +1,10 @@
 import { parseMarkdown } from "next-tinacms-github";
 
+export function googleDirectLink(sharebleLink = "") {
+  const id = sharebleLink.split("/").slice(-2)[0];
+  return `https://drive.google.com/uc?export=view&id=${id}`;
+}
+
 function GitFile({ fileRelativePath, data }) {
   return Object.freeze({
     fileRelativePath,

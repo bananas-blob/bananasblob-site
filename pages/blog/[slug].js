@@ -1,6 +1,6 @@
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
-import { postsSlugs, getPost, Site } from "../../main";
+import { postsSlugs, getPost, Site, googleDirectLink } from "../../main";
 import Layout from "../../main/templates/Layout";
 import { InlineForm } from "react-tinacms-inline";
 import { InlineWysiwyg } from "react-tinacms-editor";
@@ -13,34 +13,27 @@ export default function BlogPost({ file, pageTitle }) {
     label: "Home",
     fields: [
       {
-        label: "Hero Image",
-        name: "frontmatter.hero_image",
-        component: "image",
-        // Generate the frontmatter value based on the filename
-        parse: (filename) => `../static/images/${filename}`,
-
-        // Decide the file upload directory for the post
-        uploadDir: () => "/public/static/images/",
-
-        // Generate the src attribute for the preview image.
-        previewSrc: (data) => `/images/${data.frontmatter.hero_image}`,
-        imageProps: async function upload(files) {
-          const directory = "public/static/images/";
-          console.log("file from upload", file);
-          let media = await cms.media.store.persist(
-            files.map((file) => ({
-              directory,
-              file,
-            }))
-          );
-
-          return media.map((m) => `/${m.filename}`);
-        },
-      },
-      {
         name: "frontmatter.image",
         component: "text",
         label: "Link da Imagem",
+      },
+      {
+        label: "Imagem",
+        name: "frontmatter.image",
+        description: "Imagem do Post",
+        component: "group",
+        fields: [
+          {
+            name: "link",
+            component: "text",
+            label: "Link do Google Drive",
+          },
+          {
+            name: "alt",
+            component: "text",
+            label: "Name",
+          },
+        ],
       },
       {
         name: "frontmatter.title",
@@ -73,7 +66,10 @@ export default function BlogPost({ file, pageTitle }) {
       <article className="post">
         <div>
           <h1>{data.frontmatter.title}</h1>
-          <img src={data.frontmatter.image}></img>
+          <img
+            src={googleDirectLink(data.frontmatter.image.link)}
+            alt={data.frontmatter.image.alt}
+          ></img>
           <InlineForm form={form}>
             <InlineWysiwyg name="markdownBody" format="markdown">
               <ReactMarkdown source={data.markdownBody} />
@@ -122,58 +118,3 @@ export async function getStaticPaths() {
     fallback: false,
   };
 }
-
-// function formOptions(post) {
-//   const { title, date, author } = post.markdownFile.frontmatter;
-//   const { markdownBody } = post.markdownFile;
-
-//   return {
-//     id: "AAAAAAHhhhh",
-//     label: "Post",
-//     fields: [
-//       {
-//         name: "title",
-//         label: "Título",
-//         component: "text",
-//       },
-//       {
-//         name: "date",
-//         label: "Data",
-//         component: "date",
-//       },
-//       {
-//         name: "author",
-//         label: "Autor",
-//         component: "text",
-//       },
-//       {
-//         name: "markdownBody",
-//         label: "Conteúdo",
-//         component: "markdown",
-//       },
-//     ],
-//     initialValues: {
-//       title,
-//       date,
-//       author,
-//       markdownBody,
-//     },
-//     onSubmit(data) {
-//       alert(data);
-//       // return cms.api.git
-//       //   .writeToDisk({
-//       //     fileRelativePath: props.fileRelativePath,
-//       //     content: toMarkdownString(data),
-//       //   })
-//       //   .then(() => {
-//       //     return cms.api.git.commit({
-//       //       files: [props.fileRelativePath],
-//       //       message: `Commit from Tina: Update ${data.fileRelativePath}`,
-//       //     });
-//       //   });
-//     },
-//     onChange() {
-//       alert("Changed!");
-//     },
-//   };
-// }
