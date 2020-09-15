@@ -23,7 +23,7 @@ export default function BlogPost({ file, pageTitle }) {
         uploadDir: () => "/public/static/images/",
 
         // Generate the src attribute for the preview image.
-        previewSrc: (data) => `/static/images/${data.frontmatter.hero_image}`,
+        previewSrc: (data) => `/images/${data.frontmatter.hero_image}`,
         imageProps: async function upload(files) {
           const directory = "public/static/images/";
           console.log("file from upload", file);
@@ -36,6 +36,11 @@ export default function BlogPost({ file, pageTitle }) {
 
           return media.map((m) => `/${m.filename}`);
         },
+      },
+      {
+        name: "frontmatter.image",
+        component: "text",
+        label: "Link da Imagem",
       },
       {
         name: "frontmatter.title",
@@ -68,6 +73,7 @@ export default function BlogPost({ file, pageTitle }) {
       <article className="post">
         <div>
           <h1>{data.frontmatter.title}</h1>
+          <img src={data.frontmatter.image}></img>
           <InlineForm form={form}>
             <InlineWysiwyg name="markdownBody" format="markdown">
               <ReactMarkdown source={data.markdownBody} />
