@@ -7,7 +7,7 @@ export default function Blog({ title, description, posts }) {
       <section>
         <ul>
           {posts.map((post, index) => (
-            <li key={index}>{post.markdownFile.frontmatter.title}</li>
+            <li key={index}>{post.gitFile.data.frontmatter.title}</li>
           ))}
         </ul>
       </section>

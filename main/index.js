@@ -1,74 +1,27 @@
-// import matter from "gray-matter";
-
 import { parseMarkdown } from "next-tinacms-github";
-
-// function NewMarkdownFile({
-//   frontmatter,
-//   markdownBody,
-//   fileRelativePath = null,
-// } = {}) {
-//   return Object.freeze({
-//     frontmatter,
-//     markdownBody,
-//     fileRelativePath,
-//   });
-// }
-
-// function Post({ slug, frontmatter, markdownBody } = {}) {
-//   const fileRelativePath = `content/posts/${slug}.md`;
-//   const markdownFile = NewMarkdownFile({
-//     frontmatter,
-//     markdownBody,
-//     fileRelativePath,
-//   });
-
-//   return Object.freeze({
-//     slug,
-//     markdownFile,
-//   });
-// }
-
-// export async function getPost(slug) {
-//   const postFile = await import(`../content/posts/${slug}.md`);
-//   const parsedPostFile = matter(postFile.default);
-
-//   return Post({
-//     slug,
-//     frontmatter: parsedPostFile.data,
-//     markdownBody: parsedPostFile.content,
-//   });
-// }
-
-// export async function getPosts() {
-//   const posts = [];
-//   const postsFilesContext = await require.context(
-//     "../content/posts",
-//     true,
-//     /\.md$/
-//   );
-//   const postsFilesKeys = postsFilesContext.keys();
-//   const postsFiles = postsFilesKeys.map(postsFilesContext);
-
-//   postsFilesKeys.forEach((key, index) => {
-//     const postFile = postsFiles[index];
-//     const parsedPostFile = matter(postFile.default);
-//     const post = Post({
-//       slug: slugify(key),
-//       frontmatter: parsedPostFile.data,
-//       markdownBody: parsedPostFile.content,
-//     });
-
-//     posts.push(post);
-//   });
-
-//   return posts;
-// }
 
 function GitFile({ fileRelativePath, data }) {
   return Object.freeze({
     fileRelativePath,
     data,
   });
+}
+
+function Site({ data }) {
+  const gitFile = GitFile({
+    fileRelativePath: `content/home.json`,
+    data,
+  });
+
+  return Object.freeze({
+    gitFile,
+  });
+}
+
+export async function getSite() {
+  const siteFile = await import("../content/home.json");
+  const data = siteFile.default;
+  return Site({ data });
 }
 
 function Post({ slug, data }) {
@@ -79,6 +32,14 @@ function Post({ slug, data }) {
       data,
     }),
   });
+}
+
+export async function getPost(slug) {
+  const postFile = await import(`../content/posts/${slug}.md`);
+  console.log({ slug, postFile });
+  const data = parseMarkdown(postFile.default);
+
+  return Post({ slug, data });
 }
 
 export async function getPosts() {
@@ -103,13 +64,6 @@ export async function getPosts() {
   });
 
   return posts;
-}
-
-export async function getPost(slug) {
-  const postFile = await import(`../content/posts/${slug}.md`);
-  const data = parseMarkdown(postFile.default);
-
-  return Post({ slug, data });
 }
 
 export function postsSlugs() {

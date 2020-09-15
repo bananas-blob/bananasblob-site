@@ -1,39 +1,76 @@
 import * as React from "react";
 import ReactMarkdown from "react-markdown";
-import { postsSlugs, getPost } from "../../main";
+import { postsSlugs, getPost, Site } from "../../main";
 import Layout from "../../main/templates/Layout";
-import { useForm, usePlugin } from "tinacms";
 import { InlineForm } from "react-tinacms-inline";
 import { InlineWysiwyg } from "react-tinacms-editor";
 import { parseMarkdown, getGithubPreviewProps } from "next-tinacms-github";
 import { useGithubMarkdownForm } from "react-tinacms-github";
+import { usePlugin } from "tinacms";
 
-export default function BlogPost({ post, pageTitle }) {
+export default function BlogPost({ file, pageTitle }) {
   const formOptions = {
     label: "Home",
     fields: [
-      { name: "frontmatter.title", component: "text", label: "Título" },
+      {
+        label: "Hero Image",
+        name: "frontmatter.hero_image",
+        component: "image",
+        // Generate the frontmatter value based on the filename
+        parse: (filename) => `../static/images/${filename}`,
+
+        // Decide the file upload directory for the post
+        uploadDir: () => "/public/static/images/",
+
+        // Generate the src attribute for the preview image.
+        previewSrc: (data) => `/static/images/${data.frontmatter.hero_image}`,
+        imageProps: async function upload(files) {
+          const directory = "public/static/images/";
+          console.log("file from upload", file);
+          let media = await cms.media.store.persist(
+            files.map((file) => ({
+              directory,
+              file,
+            }))
+          );
+
+          return media.map((m) => `/${m.filename}`);
+        },
+      },
+      {
+        name: "frontmatter.title",
+        component: "text",
+        label: "Título",
+      },
       {
         name: "frontmatter.description",
         component: "text",
         label: "Descrição",
       },
-      { name: "frontmatter.author", component: "text", label: "Autor" },
+      {
+        name: "frontmatter.author",
+        component: "text",
+        label: "Autor",
+      },
+      // {
+      //   name: "markdownBody",
+      //   component: "markdown",
+      //   label: "Post",
+      // },
     ],
   };
 
-  const [data, form] = useGithubMarkdownForm(post.gitFile, formOptions);
-  const { markdownBody, frontmatter } = data;
-  const { title, description, author } = frontmatter;
+  const [data, form] = useGithubMarkdownForm(file, formOptions);
+  usePlugin(form);
 
   return (
-    <Layout title={pageTitle} description={description}>
+    <Layout title={"pageTitle"} description={data.frontmatter.description}>
       <article className="post">
         <div>
-          <h1>{title}</h1>
+          <h1>{data.frontmatter.title}</h1>
           <InlineForm form={form}>
             <InlineWysiwyg name="markdownBody" format="markdown">
-              <ReactMarkdown source={markdownBody} />
+              <ReactMarkdown source={data.markdownBody} />
             </InlineWysiwyg>
           </InlineForm>
         </div>
@@ -43,8 +80,8 @@ export default function BlogPost({ post, pageTitle }) {
 }
 
 export async function getStaticProps({ preview, previewData, params }) {
-  const site = await import("../../content/home.json");
   const { slug } = params;
+
   if (preview) {
     return getGithubPreviewProps({
       ...previewData,
@@ -53,15 +90,20 @@ export async function getStaticProps({ preview, previewData, params }) {
     });
   }
 
-  const post = await getPost(slug);
-  const { title } = post.gitFile.data.frontmatter;
+  const postFile = await import(`../../content/posts/${slug}.md`);
+  const data = parseMarkdown(postFile.default);
+  const { title: postTitle } = data.frontmatter;
+
   return {
     props: {
       sourceProvider: null,
       error: null,
       preview: false,
-      pageTitle: site.title + site.configuration.titleSeparator + title,
-      post,
+      // title: site.title,
+      file: {
+        fileRelativePath: `content/posts/${slug}.md`,
+        data,
+      },
     },
   };
 }

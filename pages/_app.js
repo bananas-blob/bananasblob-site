@@ -1,16 +1,13 @@
 import "../styles/globals.css";
 import { TinaCMS, TinaProvider } from "tinacms";
-import { GithubClient, TinacmsGithubProvider } from "react-tinacms-github";
+import {
+  GithubClient,
+  TinacmsGithubProvider,
+  GithubMediaStore,
+} from "react-tinacms-github";
 
 export default function MyApp({ Component, pageProps }) {
   const tina = TinaFactory(pageProps);
-
-  // import("react-tinacms-editor").then(
-  //   ({ MarkdownFieldPlugin, HtmlFieldPlugin }) => {
-  //     tina.plugins.add(MarkdownFieldPlugin);
-  //     tina.plugins.add(HtmlFieldPlugin);
-  //   }
-  // );
 
   return (
     <TinaProvider cms={tina}>
@@ -27,19 +24,35 @@ export default function MyApp({ Component, pageProps }) {
 }
 
 function TinaFactory(pageProps) {
-  return new TinaCMS({
+  const githubClient = new GithubClient({
+    proxy: "/api/proxy-github",
+    authCallbackRoute: "/api/create-github-access-token",
+    clientId: process.env.GITHUB_CLIENT_ID,
+    baseRepoFullName: process.env.REPO_FULL_NAME,
+  });
+
+  const mediaStore = new GithubMediaStore(githubClient);
+
+  const tina = new TinaCMS({
     enabled: !!pageProps.preview,
     apis: {
-      github: new GithubClient({
-        proxy: "/api/proxy-github",
-        authCallbackRoute: "/api/create-github-access-token",
-        clientId: process.env.GITHUB_CLIENT_ID,
-        baseRepoFullName: process.env.REPO_FULL_NAME,
-      }),
+      github: githubClient,
+    },
+    media: {
+      store: mediaStore,
     },
     sidebar: pageProps.preview,
     toolbar: pageProps.preview,
   });
+
+  import("react-tinacms-editor").then(
+    ({ MarkdownFieldPlugin, HtmlFieldPlugin }) => {
+      tina.plugins.add(MarkdownFieldPlugin);
+      tina.plugins.add(HtmlFieldPlugin);
+    }
+  );
+
+  return tina;
 }
 
 async function onLogin() {
