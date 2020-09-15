@@ -5,6 +5,13 @@ import { GithubClient, TinacmsGithubProvider } from "react-tinacms-github";
 export default function MyApp({ Component, pageProps }) {
   const tina = TinaFactory(pageProps);
 
+  // import("react-tinacms-editor").then(
+  //   ({ MarkdownFieldPlugin, HtmlFieldPlugin }) => {
+  //     tina.plugins.add(MarkdownFieldPlugin);
+  //     tina.plugins.add(HtmlFieldPlugin);
+  //   }
+  // );
+
   return (
     <TinaProvider cms={tina}>
       <TinacmsGithubProvider
@@ -12,9 +19,6 @@ export default function MyApp({ Component, pageProps }) {
         onLogout={onLogout}
         error={pageProps.error}
       >
-        {/**
-         * 5. Add a button for entering Preview/Edit Mode
-         */}
         <EditLink cms={tina} />
         <Component {...pageProps} />
       </TinacmsGithubProvider>

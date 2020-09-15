@@ -1,38 +1,67 @@
 import * as React from "react";
-import matter from "gray-matter";
 import ReactMarkdown from "react-markdown";
-// const glob = require("glob");
-
-import { Post, postsSlugs } from "../../main";
+import { postsSlugs, getPost } from "../../main";
 import Layout from "../../main/templates/Layout";
-import { useMarkdownForm } from "next-tinacms-markdown";
+import { useForm, usePlugin } from "tinacms";
+import { InlineForm } from "react-tinacms-inline";
+import { InlineWysiwyg } from "react-tinacms-editor";
+import { parseMarkdown, getGithubPreviewProps } from "next-tinacms-github";
+import { useGithubMarkdownForm } from "react-tinacms-github";
 
-export default function BlogTemplate({ post, pageTitle }) {
-  const [postForm] = useMarkdownForm(post, formOptions());
-  const { frontmatter, markdownBody } = postForm;
+export default function BlogPost({ post, pageTitle }) {
+  const formOptions = {
+    label: "Home",
+    fields: [
+      { name: "frontmatter.title", component: "text", label: "Título" },
+      {
+        name: "frontmatter.description",
+        component: "text",
+        label: "Descrição",
+      },
+      { name: "frontmatter.author", component: "text", label: "Autor" },
+    ],
+  };
+
+  const [data, form] = useGithubMarkdownForm(post.gitFile, formOptions);
+  const { markdownBody, frontmatter } = data;
+  const { title, description, author } = frontmatter;
 
   return (
-    <Layout title={pageTitle} description={frontmatter.description}>
+    <Layout title={pageTitle} description={description}>
       <article className="post">
         <div>
-          <h1>{frontmatter.title}</h1>
-          <ReactMarkdown source={markdownBody} />
+          <h1>{title}</h1>
+          <InlineForm form={form}>
+            <InlineWysiwyg name="markdownBody" format="markdown">
+              <ReactMarkdown source={markdownBody} />
+            </InlineWysiwyg>
+          </InlineForm>
         </div>
       </article>
     </Layout>
   );
 }
 
-export async function getStaticProps({ params }) {
+export async function getStaticProps({ preview, previewData, params }) {
   const site = await import("../../content/home.json");
   const { slug } = params;
-  const post = await Post("../../content/posts", slug);
+  if (preview) {
+    return getGithubPreviewProps({
+      ...previewData,
+      fileRelativePath: `content/posts/${slug}.md`,
+      parse: parseMarkdown,
+    });
+  }
 
+  const post = await getPost(slug);
+  const { title } = post.gitFile.data.frontmatter;
   return {
     props: {
+      sourceProvider: null,
+      error: null,
+      preview: false,
+      pageTitle: site.title + site.configuration.titleSeparator + title,
       post,
-      pageTitle:
-        site.title + site.configuration.titleSeparator + post.frontmatter.title,
     },
   };
 }
@@ -46,55 +75,57 @@ export async function getStaticPaths() {
   };
 }
 
-function formOptions() {
-  return {
-    label: "Post",
-    fields: [
-      // {
-      //   label: "Hero Image",
-      //   name: "frontmatter.hero_image",
-      //   component: "image",
-      //   // Generate the frontmatter value based on the filename
-      //   parse: (filename) => `../static/images/${filename}`,
+// function formOptions(post) {
+//   const { title, date, author } = post.markdownFile.frontmatter;
+//   const { markdownBody } = post.markdownFile;
 
-      //   // Decide the file upload directory for the post
-      //   uploadDir: () => "/public/static/images/",
-
-      //   // Generate the src attribute for the preview image.
-      //   previewSrc: (data) => `/static/images/${data.frontmatter.hero_image}`,
-      //   imageProps: async function upload(files) {
-      //     const directory = "public/static/";
-      //     console.log("file from upload", file);
-      //     let media = await cms.media.store.persist(
-      //       files.map((file) => ({
-      //         directory,
-      //         file,
-      //       }))
-      //     );
-
-      //     return media.map((m) => `/${m.filename}`);
-      //   },
-      // },
-      {
-        name: "frontmatter.title",
-        label: "Título",
-        component: "text",
-      },
-      {
-        name: "frontmatter.date",
-        label: "Data",
-        component: "date",
-      },
-      {
-        name: "frontmatter.author",
-        label: "Autor",
-        component: "text",
-      },
-      {
-        name: "markdownBody",
-        label: "Conteúdo",
-        component: "markdown",
-      },
-    ],
-  };
-}
+//   return {
+//     id: "AAAAAAHhhhh",
+//     label: "Post",
+//     fields: [
+//       {
+//         name: "title",
+//         label: "Título",
+//         component: "text",
+//       },
+//       {
+//         name: "date",
+//         label: "Data",
+//         component: "date",
+//       },
+//       {
+//         name: "author",
+//         label: "Autor",
+//         component: "text",
+//       },
+//       {
+//         name: "markdownBody",
+//         label: "Conteúdo",
+//         component: "markdown",
+//       },
+//     ],
+//     initialValues: {
+//       title,
+//       date,
+//       author,
+//       markdownBody,
+//     },
+//     onSubmit(data) {
+//       alert(data);
+//       // return cms.api.git
+//       //   .writeToDisk({
+//       //     fileRelativePath: props.fileRelativePath,
+//       //     content: toMarkdownString(data),
+//       //   })
+//       //   .then(() => {
+//       //     return cms.api.git.commit({
+//       //       files: [props.fileRelativePath],
+//       //       message: `Commit from Tina: Update ${data.fileRelativePath}`,
+//       //     });
+//       //   });
+//     },
+//     onChange() {
+//       alert("Changed!");
+//     },
+//   };
+// }

@@ -1,14 +1,13 @@
-import matter from "gray-matter";
 import Layout from "../../main/templates/Layout";
-import { Posts } from "../../main/index.js";
+import { getPosts } from "../../main/index.js";
 
-export default function Index({ title, description, posts }) {
+export default function Blog({ title, description, posts }) {
   return (
     <Layout title={title} description={description}>
       <section>
         <ul>
           {posts.map((post, index) => (
-            <li key={index}>{post.title}</li>
+            <li key={index}>{post.markdownFile.frontmatter.title}</li>
           ))}
         </ul>
       </section>
@@ -19,7 +18,7 @@ export default function Index({ title, description, posts }) {
 export async function getStaticProps() {
   const site = await import("../../content/home.json");
   const blog = await import("../../content/blog.json");
-  const posts = await Posts();
+  const posts = await getPosts();
 
   return {
     props: {
