@@ -1,3 +1,6 @@
 {
-  "title": "You shall not banana"
+  "title": "My super site!",
+  "configuration": {
+    "titleSeparator": " | "
+  }
 }
